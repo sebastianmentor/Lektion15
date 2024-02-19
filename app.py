@@ -5,12 +5,18 @@ from models import db, seed_data, Bok, Kund, Bestallning, BestallningsDetalj, us
 from flask import jsonify
 from flask_security import Security, roles_required, roles_accepted,login_required,logout_user, current_user
 from flask_mail import Mail
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv() 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:password@localhost/LLB'
-app.config['SECRET_KEY'] = 'askdfjöaslkjfölkjewöqpijf '
-app.config['SECURITY_REGISTERABLE'] = True
-app.config['SECURITY_PASSWORD_SALT'] = 'asdöklfjafsdlklkjafsdölkj'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('AZURE_DB_URI')
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:password@localhost/LLB'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECURITY_REGISTERABLE'] = False
+app.config['SECURITY_PASSWORD_SALT'] = os.getenv('SECURITY_PASSWORD_SALT')
 #Mail
 app.config['MAIL_SERVER'] = '127.0.0.1'
 app.config['MAIL_PORT'] = 1025
@@ -55,6 +61,7 @@ def bocker():
         page=page)
 
 @app.route('/api/bocker')
+@login_required
 def api_bocker():
     all_books = Bok.query.all()
     list_of_books = []
@@ -80,6 +87,7 @@ def bok(bokid):
     return render_template("bok.html", bok=b, active_page = 'bocker_page')
 
 @app.route('/api/bok/<bokid>')
+@login_required
 def api_bok(bokid):
     b = Bok.query.filter(Bok.id == bokid).first()
     if b:
@@ -100,6 +108,7 @@ def addbok():
     return render_template("addBok.html")
 
 @app.route('/kontakt', methods = ['GET', 'POST'])
+@login_required
 def kontakt():
     form = KontaktaOssForm(request.form)
 
@@ -181,4 +190,4 @@ if __name__ == '__main__':
         upgrade()
         seed_data(app, db)
 
-    app.run(debug=True)
+    app.run(debug=False)
